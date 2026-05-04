@@ -162,36 +162,39 @@ fix_perms() {
         "$IMAGE_NAME" chown -R $(id -u):$(id -g) /root/sbox
 }
 
+NEEDS_PERM_FIX=0
+trap 'if [ "$NEEDS_PERM_FIX" = "1" ]; then fix_perms; fi' EXIT
+
 # --- Execution Logic ---
 case "$COMMAND" in
     compile|all)
         echo "Starting Full Build for: $BUILD_DIR"
+        NEEDS_PERM_FIX=1
         run_build "build" "Step 1/3: Engine"
         run_build "build-shaders" "Step 2/3: Shaders"
         run_build "build-content" "Step 3/3: Content"
-        fix_perms
         echo "========================================"
         echo "Full build complete!"
         ;;
     engine)
+        NEEDS_PERM_FIX=1
         run_build "build" "Engine Build"
-        fix_perms
         ;;
     shaders)
+        NEEDS_PERM_FIX=1
         run_build "build-shaders" "Shader Build"
-        fix_perms
         ;;
     content)
+        NEEDS_PERM_FIX=1
         run_build "build-content" "Content Build"
-        fix_perms
         ;;
     shell)
         echo "Opening build shell in: $BUILD_DIR"
+        NEEDS_PERM_FIX=1
         $ENGINE run -it --rm --security-opt seccomp=unconfined \
             -v "$BUILD_DIR:/root/sbox" \
             -e WINEDEBUG=-all \
             "$IMAGE_NAME" /bin/bash
-        fix_perms
         ;;
     help|*)
         show_help
