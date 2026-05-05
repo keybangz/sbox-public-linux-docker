@@ -141,6 +141,10 @@ run_build() {
     # Only the main 'build' task uses --config
     if [ "$task" == "build" ]; then
         extra_args="--config Developer"
+        # Skip artifact download if requested (default for local rebuilds)
+        if [ "${SBOX_SKIP_ARTIFACTS:-0}" == "1" ]; then
+            extra_args="$extra_args --skip-artifacts"
+        fi
     fi
 
     echo "----------------------------------------"
